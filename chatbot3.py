@@ -12,27 +12,34 @@ client = ChatCompletionsClient(
     credential=AzureKeyCredential(token),
 )
 
-response = client.complete(
-    stream=True,
-    messages=[
-        SystemMessage("You are a helpful assistant."),
-        UserMessage("Give me 5 good reasons why I should exercise every day."),
-    ],
-    model_extras = {'stream_options': {'include_usage': True}},
-    model=model_name,
-)
+print("Chatbot is ready! Type 'bye' to exit.")
 
-usage = {}
-for update in response:
-    if update.choices and update.choices[0].delta:
-        print(update.choices[0].delta.content or "", end="")
-    if update.usage:
-        usage = update.usage
+while True:
+    user_input = input("You: ")
+    if user_input.lower() == "bye":
+        print("Chatbot: Goodbye!")
+        break
 
-if usage:
-    print("\n")
-    for k, v in usage.items():
-        print(f"{k} = {v}")
+    response = client.complete(
+        stream=True,
+        messages=[
+            SystemMessage("You are a helpful assistant."),
+            UserMessage(user_input),
+        ],
+        model_extras={'stream_options': {'include_usage': True}},
+        model=model_name,
+    )
 
+    usage = {}
+    for update in response:
+        if update.choices and update.choices[0].delta:
+            print(update.choices[0].delta.content or "", end="")
+        if update.usage:
+            usage = update.usage
+
+    if usage:
+        print("\n")
+        for k, v in usage.items():
+            print(f"{k} = {v}")
 
 client.close()
